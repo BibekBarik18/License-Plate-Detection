@@ -17,7 +17,7 @@ coco_model = YOLO('yolov8n.pt')
 license_plate_detector = YOLO('license_plate_detector.pt')
 
 # load video
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(r"D:\GIT\License-plate-detection\images\3.jpeg")
 
 vehicles = [2, 3, 5, 7]
 
@@ -59,9 +59,25 @@ while True:
 
                 # crop license plate
                 license_plate_crop = frame[int(y1):int(y2), int(x1): int(x2), :]
+                
+                #resizing
+                # Get the original dimensions of the image
+                original_height, original_width = license_plate_crop.shape[:2]
+
+                # Define the scaling factors (percentages)
+                scale_percent = 1000  # For example, increase size by 150%
+
+                # Calculate the new dimensions
+                new_width = int(original_width * scale_percent / 100)
+                new_height = int(original_height * scale_percent / 100)
+                new_size = (new_width, new_height)
+                                
+                cv2.imshow('frame',license_plate_crop)
+                resized_image=cv2.resize(license_plate_crop,new_size,interpolation=cv2.INTER_CUBIC)
+                cv2.imshow('frame',resized_image,)
 
                 # process license plate
-                license_plate_crop_gray = cv2.cvtColor(license_plate_crop, cv2.COLOR_BGR2GRAY)
+                license_plate_crop_gray = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
                 _, license_plate_crop_thresh = cv2.threshold(license_plate_crop_gray, 64, 255, cv2.THRESH_BINARY_INV)
 
                 # read license plate number
@@ -81,9 +97,10 @@ while True:
                                                                     'bbox_score': score,
                                                                     'text_score': license_plate_text_score}}
                 
+                print(license_plate_text)
                 cv2.putText(frame,license_plate_text ,org, font, fontScale, color, thickness)            
         cv2.imshow('Frame', frame)            
-        if cv2.waitKey(1) & 0xff == ord('q'):
-            break
-# write results
-write_csv(results, './test.csv')
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    # write results
+        write_csv(results, './test.csv')
